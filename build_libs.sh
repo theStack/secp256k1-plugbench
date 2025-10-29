@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
+set -e
+
 rm -rf *.so *.a
 rm -rf secp256k1
 git clone https://github.com/bitcoin-core/secp256k1
-pushd secp256k1
+pushd secp256k1 > /dev/null
 
 build_libsecp256k1_so() {
     local versionsuffix=$1
     local gitref=$2
     local description=$3
-    echo "Building libsecp256k1 version \"${description}\" (commit ${gitref})"
-    git clean -fdx
-    git checkout .
-    git checkout $gitref
-    ./autogen.sh && ./configure --enable-static=no --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no && make -j8
+    echo "Building libsecp256k1 version ${description} (commit ${gitref})..."
+    git clean -fdxq
+    git checkout -q .
+    git checkout -q $gitref
+    ./autogen.sh > $versionsuffix.log 2>&1
+    ./configure --enable-static=no --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no >> $versionsuffix.log 2>&1
+    make -j8 >> $versionsuffix.log 2>&1
     cp ./.libs/libsecp256k1.so ../libsecp256k1-${versionsuffix}.so
 }
 
@@ -51,9 +55,12 @@ build_libsecp256k1_so "core-v29_0" "0cdc758a56360bf58a851fe91085a327ec97685a" "u
 build_libsecp256k1_so "core-v30_0" "b9313c6e1a6082a66b4c75777e18ca4b176fcf9d" "used in Bitcoin Core v30.0"
 
 # build static library as well, we use it for creating the signatures to verify
-git clean -fdx
-git checkout v0.7.0
-./autogen.sh && ./configure --enable-static=yes --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no && make -j8
+echo "Building libsecp256k1 version v0.7.0 for static linking..."
+git clean -fdxq
+git checkout -q v0.7.0
+./autogen.sh > staticbuild.log 2>&1
+./configure --enable-static=yes --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no > staticbuild.log 2>&1
+make -j8 > staticbuild.log 2>&1
 cp ./.libs/libsecp256k1.a ../libsecp256k1.a
 
-popd
+popd > /dev/null
