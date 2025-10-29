@@ -28,7 +28,7 @@ void* load_symbol(void* handle, const char* symbol)
     return symbol_result;
 }
 
-void perform_benchmark_libsecp(const char* so_file, int needs_context_creation)
+void perform_benchmark_libsecp(const char* so_file)
 {
     void* handle;
     secp256k1_context* (*dyn_secp256k1_context_create)(unsigned int);
@@ -53,20 +53,15 @@ void perform_benchmark_libsecp(const char* so_file, int needs_context_creation)
     dyn_secp256k1_ec_pubkey_parse = load_symbol(handle, "secp256k1_ec_pubkey_parse");
     dyn_secp256k1_ecdsa_signature_parse_der = load_symbol(handle, "secp256k1_ecdsa_signature_parse_der");
     dyn_secp256k1_ecdsa_verify = load_symbol(handle, "secp256k1_ecdsa_verify");
-    if (needs_context_creation) {
-        ctx = dyn_secp256k1_context_create((1 << 0) | (1 << 8)); /* matches SECP256k1_CONTEXT_VERIFY */
-        assert(ctx);
-    } else {
-        /*ctx = load_symbol(handle, "secp256k1_context_static");*/
-        ctx = (secp256k1_context*)secp256k1_context_static;
-    }
+    ctx = dyn_secp256k1_context_create((1 << 0) | (1 << 8)); /* matches SECP256K1_CONTEXT_VERIFY */
+    assert(ctx);
 
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     for (i = 0; i < N_SIGNATURES; i++) {
         secp256k1_pubkey pubkey;
         secp256k1_ecdsa_signature sig;
-        
+
         ret = dyn_secp256k1_ec_pubkey_parse(ctx, &pubkey, sigs[i].pubkey, sizeof(sigs[i].pubkey));
         assert(ret);
         ret = dyn_secp256k1_ecdsa_signature_parse_der(ctx, &sig, sigs[i].sig_buf, sigs[i].sig_len);
@@ -79,9 +74,7 @@ void perform_benchmark_libsecp(const char* so_file, int needs_context_creation)
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
     printf("Verifying %d ECDSA signatures using \"%s\" took %.2f ms\n", N_SIGNATURES, so_file, elapsed_ns/1000000);
 
-    if (needs_context_creation) {
-        dyn_secp256k1_context_destroy(ctx);
-    }
+    dyn_secp256k1_context_destroy(ctx);
     dlclose(handle);
 }
 
@@ -122,27 +115,21 @@ int main()
     }
     secp256k1_context_destroy(ctx);
 
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_12_0.so", /*needs_context_creation=*/1);
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_14_0.so", 1);
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_15_0.so", 1);
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_16_0.so", 1);
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_19_0.so", 1);
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_20_0.so", 1);
-    perform_benchmark_libsecp("./libsecp256k1-core-v22_0.so", 1);
-    perform_benchmark_libsecp("./libsecp256k1-core-v23_0.so", 0);
-    perform_benchmark_libsecp("./libsecp256k1-core-v24_0.so", 0);
-    perform_benchmark_libsecp("./libsecp256k1-core-v25_0.so", 0);
-    perform_benchmark_libsecp("./libsecp256k1-core-v26_0.so", 0);
-    perform_benchmark_libsecp("./libsecp256k1-core-v27_0.so", 0);
-    perform_benchmark_libsecp("./libsecp256k1-core-v28_0.so", 0);
-    perform_benchmark_libsecp("./libsecp256k1-core-v29_0.so", 0);
-    perform_benchmark_libsecp("./libsecp256k1-core-v30_0.so", 0);
-    // perform_benchmark_libsecp("./libsecp256k1-v0_2_0.so", 0);
-    // perform_benchmark_libsecp("./libsecp256k1-v0_3_0.so", 0);
-    // perform_benchmark_libsecp("./libsecp256k1-v0_4_0.so", 0);
-    // perform_benchmark_libsecp("./libsecp256k1-v0_5_0.so", 0);
-    // perform_benchmark_libsecp("./libsecp256k1-v0_6_0.so", 0);
-    // perform_benchmark_libsecp("./libsecp256k1-v0_7_0.so", 0);
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_12_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_14_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_15_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_16_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_19_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_20_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v22_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v23_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v24_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v25_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v26_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v27_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v28_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v29_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v30_0.so");
 
     return EXIT_SUCCESS;
 }

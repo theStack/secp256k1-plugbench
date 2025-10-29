@@ -94,31 +94,6 @@ git checkout b9313c6e1a6082a66b4c75777e18ca4b176fcf9d
 ./autogen.sh && ./configure --enable-static=no --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no && make -j8
 cp ./.libs/libsecp256k1.so ../libsecp256k1-core-v30_0.so
 
-# git clean -fdx
-# git checkout v0.2.0
-# ./autogen.sh && ./configure --enable-static=no --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no && make -j8
-# cp ./.libs/libsecp256k1.so ../libsecp256k1-v0_2_0.so
-#
-# git clean -fdx
-# git checkout v0.3.0
-# ./autogen.sh && ./configure --enable-static=no --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no && make -j8
-# cp ./.libs/libsecp256k1.so ../libsecp256k1-v0_3_0.so
-#
-# git clean -fdx
-# git checkout v0.4.0
-# ./autogen.sh && ./configure --enable-static=no --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no && make -j8
-# cp ./.libs/libsecp256k1.so ../libsecp256k1-v0_4_0.so
-
-# git clean -fdx
-# git checkout v0.5.0
-# ./autogen.sh && ./configure --enable-static=no --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no && make -j8
-# cp ./.libs/libsecp256k1.so ../libsecp256k1-v0_5_0.so
-#
-# git clean -fdx
-# git checkout v0.6.0
-# ./autogen.sh && ./configure --enable-static=no --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no && make -j8
-# cp ./.libs/libsecp256k1.so ../libsecp256k1-v0_6_0.so
-
 git clean -fdx
 git checkout v0.7.0
 ./autogen.sh && ./configure --enable-static=yes --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no && make -j8
