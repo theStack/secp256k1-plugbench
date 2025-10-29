@@ -100,6 +100,9 @@ fi
 pushd openssl > /dev/null
 
 build_openssl_so "0_9_8h" "OpenSSL_0_9_8h" "0.9.8 (used in early Bitcoin Core clients < v0.12)"
-build_openssl_so "1_0_0"  "OpenSSL_1_0_0"  "1.0.0"
-
+build_openssl_so "1_0_0"  "OpenSSL_1_0_0"  "1.0.0 (released in 2010)"
+# TODO: to compile v1.1.0, a patch to work around the perl "File::Glob" module issue is needed, see e.g.
+#       https://derrylab.com/index.php/2022/08/01/problem-when-building-old-openssl-version-on-the-new-system/
+# build_openssl_so "1_1_0"  "OpenSSL_1_1_0"  "1.1.0 (released in 2016)"
+build_openssl_so "1_1_1"  "OpenSSL_1_1_1"  "1.1.1 (released in 2018)"
 popd > /dev/null
