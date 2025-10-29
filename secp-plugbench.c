@@ -15,8 +15,7 @@ struct sig_verify_data {
     unsigned char sig_buf[128];
     size_t sig_len;
     unsigned char msghash[32];
-    //unsigned char pubkey[33];
-    unsigned char pubkey[65];
+    unsigned char pubkey[33];
 } sigs[N_SIGNATURES];
 
 unsigned long seed = 313372342;
@@ -111,11 +110,7 @@ void perform_benchmark_openssl(const char* so_file)
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     for (i = 0; i < N_SIGNATURES; i++) {
-        printf("i == %d\n", i);
         EC_KEY* ec_key = dyn_EC_KEY_new_by_curve_name(NID_secp256k1);
-        unsigned char* m = (unsigned char*)ec_key;
-        printf("we have an ec_key: %p (first few bytes at this addr: %x %x %x %x %x %x %x %x %x %x %x %x)\n", ec_key,
-                m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11]);
         const unsigned char* pubkey_bytes_begin = &sigs[i].pubkey[0];
         EC_KEY* pk_ret = dyn_o2i_ECPublicKey(&ec_key, &pubkey_bytes_begin, sizeof(sigs[i].pubkey));
         assert(pk_ret);
@@ -163,7 +158,7 @@ int main()
         ret = secp256k1_ecdsa_signature_serialize_der(secp256k1_context_static, sigs[i].sig_buf, &sigs[i].sig_len, &sig);
         assert(ret);
         memcpy(sigs[i].msghash, msghash, 32);
-        ret = secp256k1_ec_pubkey_serialize(secp256k1_context_static, sigs[i].pubkey, &pubkey_len, &pubkey, SECP256K1_EC_UNCOMPRESSED);
+        ret = secp256k1_ec_pubkey_serialize(secp256k1_context_static, sigs[i].pubkey, &pubkey_len, &pubkey, SECP256K1_EC_COMPRESSED);
         assert(ret && pubkey_len == sizeof(sigs[i].pubkey));
     }
     secp256k1_context_destroy(ctx);
