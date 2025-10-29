@@ -30,7 +30,7 @@ void* load_symbol(void* handle, const char* symbol)
     return symbol_result;
 }
 
-void perform_benchmark_libsecp(const char* so_file)
+void perform_benchmark_libsecp(const char* so_file, const char* version_desc)
 {
     void* handle;
     secp256k1_context* (*dyn_secp256k1_context_create)(unsigned int);
@@ -78,13 +78,13 @@ void perform_benchmark_libsecp(const char* so_file)
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
-    printf("Using \"%s\": %.2f ms\n", so_file, elapsed_ns/1000000);
+    printf("secp256k1 version %s: %.2f ms\n", version_desc, elapsed_ns/1000000);
 
     dyn_secp256k1_context_destroy(ctx);
     dlclose(handle);
 }
 
-void perform_benchmark_openssl(const char* so_file)
+void perform_benchmark_openssl(const char* so_file, const char* version_desc)
 {
     void* handle;
     EC_KEY* (*dyn_EC_KEY_new_by_curve_name)(int);
@@ -121,7 +121,7 @@ void perform_benchmark_openssl(const char* so_file)
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
-    printf("Using \"%s\": %.2f ms\n", so_file, elapsed_ns/1000000);
+    printf("OpenSSL version %s: %.2f ms\n", version_desc, elapsed_ns/1000000);
 
     dlclose(handle);
 }
@@ -166,25 +166,25 @@ int main()
     printf("Benchmark scenario: verify %d ECDSA signatures (DER format) with compressed public keys\n\n", N_SIGNATURES);
 
     printf("===== OpenSSL =====\n");
-    perform_benchmark_openssl("./openssl-0_9_8h.so");
+    perform_benchmark_openssl("./openssl-0_9_8h.so", "0.9.8h");
 
     printf("\n");
     printf("===== libsecp256k1 =====\n");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_12_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_14_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_15_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_16_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_19_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_20_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v22_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v23_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v24_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v25_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v26_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v27_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v28_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v29_0.so");
-    perform_benchmark_libsecp("./libsecp256k1-core-v30_0.so");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_12_0.so", "used in Bitcoin Core v0.12");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_14_0.so", "used in Bitcoin Core v0.14");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_15_0.so", "used in Bitcoin Core v0.15");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_16_0.so", "used in Bitcoin Core v0.16");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_19_0.so", "used in Bitcoin Core v0.19");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_20_0.so", "used in Bitcoin Core v0.20");
+    perform_benchmark_libsecp("./libsecp256k1-core-v22_0.so",   "used in Bitcoin Core v22.0");
+    perform_benchmark_libsecp("./libsecp256k1-core-v23_0.so",   "used in Bitcoin Core v23.0");
+    perform_benchmark_libsecp("./libsecp256k1-core-v24_0.so",   "used in Bitcoin Core v24.0");
+    perform_benchmark_libsecp("./libsecp256k1-core-v25_0.so",   "used in Bitcoin Core v25.0");
+    perform_benchmark_libsecp("./libsecp256k1-core-v26_0.so",   "used in Bitcoin Core v26.0");
+    perform_benchmark_libsecp("./libsecp256k1-core-v27_0.so",   "used in Bitcoin Core v27.0");
+    perform_benchmark_libsecp("./libsecp256k1-core-v28_0.so",   "used in Bitcoin Core v28.0");
+    perform_benchmark_libsecp("./libsecp256k1-core-v29_0.so",   "used in Bitcoin Core v29.0");
+    perform_benchmark_libsecp("./libsecp256k1-core-v30_0.so",   "used in Bitcoin Core v30.0");
 
     return EXIT_SUCCESS;
 }
