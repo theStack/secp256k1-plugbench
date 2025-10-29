@@ -78,16 +78,21 @@ build_openssl_so() {
     local versionsuffix=$1
     local gitref=$2
     local description=$3
+    local buildparallel=$4
     if [ -f ../openssl-${versionsuffix}.so ]; then
         echo "libsecp256k1 version ${description} (openssl-${versionsuffix}.so) already exists, skip build."
         return 0
     fi
-    echo "Building OpenSSL version ${description} (commit ${gitref})..."
+    echo "Building OpenSSL version ${description} (tag ${gitref})..."
     git clean -fdxq
     git checkout -q .
     git checkout -q $gitref
     ./config shared > $versionsuffix.log 2>&1
-    make >> $versionsuffix.log 2>&1
+    if [ "$buildparallel" -eq 1 ]; then
+        make -j8 >> $versionsuffix.log 2>&1
+    else
+        make >> $versionsuffix.log 2>&1
+    fi
     cp libcrypto.so ../openssl-${versionsuffix}.so
 }
 
@@ -99,12 +104,13 @@ else
 fi
 pushd openssl > /dev/null
 
-build_openssl_so "0_9_8h" "OpenSSL_0_9_8h" "0.9.8 (used in early Bitcoin Core clients < v0.12)"
-build_openssl_so "1_0_0"  "OpenSSL_1_0_0"  "1.0.0 (released in 2010)"
+# the last parameter specifies whether to build in parallel (not supported or buggy in earlier OpenSSL versions)
+build_openssl_so "0_9_8h" "OpenSSL_0_9_8h" "0.9.8 (used in early Bitcoin Core clients < v0.12)" 0
+build_openssl_so "1_0_0"  "OpenSSL_1_0_0"  "1.0.0 (released in 2010)" 0
 # TODO: to compile v1.1.0, a patch to work around the perl "File::Glob" module issue is needed, see e.g.
 #       https://derrylab.com/index.php/2022/08/01/problem-when-building-old-openssl-version-on-the-new-system/
 # build_openssl_so "1_1_0"  "OpenSSL_1_1_0"  "1.1.0 (released in 2016)"
-build_openssl_so "1_1_1"  "OpenSSL_1_1_1"  "1.1.1 (released in 2018)"
-build_openssl_so "3_0_0"  "openssl-3.0.0"  "3.0.0 (released in 2021)"
-build_openssl_so "3_1_0"  "openssl-3.1.0"  "3.1.0 (released in 2023)"
+build_openssl_so "1_1_1"  "OpenSSL_1_1_1"  "1.1.1 (released in 2018)" 1
+build_openssl_so "3_0_0"  "openssl-3.0.0"  "3.0.0 (released in 2021)" 1
+build_openssl_so "3_1_0"  "openssl-3.1.0"  "3.1.0 (released in 2023)" 1
 popd > /dev/null
