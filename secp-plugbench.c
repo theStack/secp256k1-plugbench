@@ -87,10 +87,15 @@ void perform_benchmark_libsecp(const char* so_file, const char* version_desc)
 void perform_benchmark_openssl(const char* so_file, const char* version_desc)
 {
     void* handle;
-    EC_KEY* (*dyn_EC_KEY_new_by_curve_name)(int);
-    void    (*dyn_EC_KEY_free)(EC_KEY*);
-    EC_KEY* (*dyn_o2i_ECPublicKey)(EC_KEY**, const unsigned char**, long);
-    int 	(*dyn_ECDSA_verify)(int, const unsigned char*, int, const unsigned char*, int, EC_KEY*);
+    EC_GROUP* (*dyn_EC_GROUP_new_by_curve_name)(int);
+    int       (*dyn_EC_GROUP_precompute_mult)(EC_GROUP*, BN_CTX*);
+    int       (*dyn_EC_GROUP_have_precompute_mult)(const EC_GROUP*);
+    void      (*dyn_EC_GROUP_free)(EC_GROUP*);
+    EC_KEY*   (*dyn_EC_KEY_new)(void);
+    int       (*dyn_EC_KEY_set_group)(EC_KEY*, const EC_GROUP*);
+    void      (*dyn_EC_KEY_free)(EC_KEY*);
+    EC_KEY*   (*dyn_o2i_ECPublicKey)(EC_KEY**, const unsigned char**, long);
+    int       (*dyn_ECDSA_verify)(int, const unsigned char*, int, const unsigned char*, int, EC_KEY*);
 
     struct timespec start, end;
     int i, ret;
@@ -102,27 +107,41 @@ void perform_benchmark_openssl(const char* so_file, const char* version_desc)
         exit(EXIT_FAILURE);
     }
 
-    dyn_EC_KEY_new_by_curve_name = load_symbol(handle, "EC_KEY_new_by_curve_name");
+    dyn_EC_GROUP_new_by_curve_name = load_symbol(handle, "EC_GROUP_new_by_curve_name");
+    dyn_EC_GROUP_precompute_mult = load_symbol(handle, "EC_GROUP_precompute_mult");
+    dyn_EC_GROUP_have_precompute_mult = load_symbol(handle, "EC_GROUP_have_precompute_mult");
+    dyn_EC_GROUP_free = load_symbol(handle, "EC_GROUP_free");
+    dyn_EC_KEY_new = load_symbol(handle, "EC_KEY_new");
+    dyn_EC_KEY_set_group = load_symbol(handle, "EC_KEY_set_group");
     dyn_EC_KEY_free = load_symbol(handle, "EC_KEY_free");
     dyn_o2i_ECPublicKey = load_symbol(handle, "o2i_ECPublicKey");
     dyn_ECDSA_verify = load_symbol(handle, "ECDSA_verify");
 
+    EC_GROUP* group = dyn_EC_GROUP_new_by_curve_name(NID_secp256k1);
+    assert(group);
+    ret = dyn_EC_GROUP_precompute_mult(group, NULL);
+    assert(ret);
+    ret = dyn_EC_GROUP_have_precompute_mult(group);
+    assert(ret); /* ensure precomputation table is used (for fair comparison) */
+    EC_KEY *key = dyn_EC_KEY_new();
+    assert(key);
+    dyn_EC_KEY_set_group(key, group);
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     for (i = 0; i < N_SIGNATURES; i++) {
-        EC_KEY* ec_key = dyn_EC_KEY_new_by_curve_name(NID_secp256k1);
         const unsigned char* pubkey_bytes_begin = &sigs[i].pubkey[0];
-        EC_KEY* pk_ret = dyn_o2i_ECPublicKey(&ec_key, &pubkey_bytes_begin, sizeof(sigs[i].pubkey));
+        EC_KEY* pk_ret = dyn_o2i_ECPublicKey(&key, &pubkey_bytes_begin, sizeof(sigs[i].pubkey));
         assert(pk_ret);
-        ret = dyn_ECDSA_verify(0, sigs[i].msghash, sizeof(sigs[i].msghash), sigs[i].sig_buf, sigs[i].sig_len, ec_key);
+        ret = dyn_ECDSA_verify(0, sigs[i].msghash, sizeof(sigs[i].msghash), sigs[i].sig_buf, sigs[i].sig_len, key);
         assert(ret == 1); /* 1 == good */
-        dyn_EC_KEY_free(ec_key);
     }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
     printf("OpenSSL version %s: %.2f ms\n", version_desc, elapsed_ns/1000000);
 
+    dyn_EC_KEY_free(key);
+    dyn_EC_GROUP_free(group);
     dlclose(handle);
 }
 
