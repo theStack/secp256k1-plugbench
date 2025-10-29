@@ -17,7 +17,7 @@ build_libsecp256k1_so() {
 }
 
 # policy: start with the first Bitcoin Core version that used libsecp256k1 for ECDSA signature validation
-# (i.e. v0.12), add a new version whenever the secp256k1 subtree changed compared to the previous version
+# (i.e. v0.12), add a new version only if the secp256k1 subtree changed compared to the previous listed version
 
 # libsecp256k1-PR #357, bitcoin-core-PR #7088 (merged on Nov 25, 2015)
 build_libsecp256k1_so "core-v0_12_0" "6c527eceee7f5105c33c98dfae24ffeffd71f7cf" "used in Bitcoin Core v0.12.0"

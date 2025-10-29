@@ -35,6 +35,7 @@ void perform_benchmark_libsecp(const char* so_file)
     void (*dyn_secp256k1_context_destroy)(secp256k1_context*);
     int (*dyn_secp256k1_ec_pubkey_parse)(const secp256k1_context*, secp256k1_pubkey*, const unsigned char*, size_t);
     int (*dyn_secp256k1_ecdsa_signature_parse_der)(const secp256k1_context*, secp256k1_ecdsa_signature*, const unsigned char*, size_t);
+    int (*dyn_secp256k1_ecdsa_signature_normalize)(const secp256k1_context*, secp256k1_ecdsa_signature*, const secp256k1_ecdsa_signature*);
     int (*dyn_secp256k1_ecdsa_verify)(const secp256k1_context*, const secp256k1_ecdsa_signature*,
             const unsigned char*, const secp256k1_pubkey*);
     struct timespec start, end;
@@ -52,6 +53,7 @@ void perform_benchmark_libsecp(const char* so_file)
     dyn_secp256k1_context_destroy = load_symbol(handle, "secp256k1_context_destroy");
     dyn_secp256k1_ec_pubkey_parse = load_symbol(handle, "secp256k1_ec_pubkey_parse");
     dyn_secp256k1_ecdsa_signature_parse_der = load_symbol(handle, "secp256k1_ecdsa_signature_parse_der");
+    dyn_secp256k1_ecdsa_signature_normalize = load_symbol(handle, "secp256k1_ecdsa_signature_normalize");
     dyn_secp256k1_ecdsa_verify = load_symbol(handle, "secp256k1_ecdsa_verify");
     ctx = dyn_secp256k1_context_create((1 << 0) | (1 << 8)); /* matches SECP256K1_CONTEXT_VERIFY */
     assert(ctx);
@@ -66,6 +68,8 @@ void perform_benchmark_libsecp(const char* so_file)
         assert(ret);
         ret = dyn_secp256k1_ecdsa_signature_parse_der(ctx, &sig, sigs[i].sig_buf, sigs[i].sig_len);
         assert(ret);
+        ret = dyn_secp256k1_ecdsa_signature_normalize(ctx, &sig, &sig);
+        assert(ret == 0); /* returns 0 if signature was already normalized; always the case since we create them with libsecp256k1 */
         ret = dyn_secp256k1_ecdsa_verify(ctx, &sig, sigs[i].msghash, &pubkey);
         assert(ret);
     }
