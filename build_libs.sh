@@ -1,16 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-# TODO: put that in separate "rebuild" script or something similar
-#rm -rf *.so *.a
-#rm -rf secp256k1
-if [ -d secp256k1 ]; then
-    echo "secp256k1 folder already exists, skip repository cloning."
-else
-    git clone https://github.com/bitcoin-core/secp256k1
-fi
-pushd secp256k1 > /dev/null
-
 build_libsecp256k1_so() {
     local versionsuffix=$1
     local gitref=$2
@@ -28,6 +18,16 @@ build_libsecp256k1_so() {
     make -j8 >> $versionsuffix.log 2>&1
     cp ./.libs/libsecp256k1.so ../libsecp256k1-${versionsuffix}.so
 }
+
+# TODO: put that in separate "rebuild" script or something similar
+#rm -rf *.so *.a
+#rm -rf secp256k1
+if [ -d secp256k1 ]; then
+    echo "secp256k1 folder already exists, skip repository cloning."
+else
+    git clone https://github.com/bitcoin-core/secp256k1
+fi
+pushd secp256k1 > /dev/null
 
 # policy: start with the first Bitcoin Core version that used libsecp256k1 for ECDSA signature validation
 # (i.e. v0.12), add a new version only if the secp256k1 subtree changed compared to the previous listed version
@@ -71,5 +71,34 @@ git checkout -q v0.7.0
 ./configure --enable-static=yes --enable-benchmark=no --enable-tests=no --enable-exhaustive-tests=no > staticbuild.log 2>&1
 make -j8 > staticbuild.log 2>&1
 cp ./.libs/libsecp256k1.a ../libsecp256k1.a
+
+popd > /dev/null
+
+build_openssl_so() {
+    local versionsuffix=$1
+    local gitref=$2
+    local description=$3
+    if [ -f ../openssl-${versionsuffix}.so ]; then
+        echo "libsecp256k1 version ${description} (openssl-${versionsuffix}.so) already exists, skip build."
+        return 0
+    fi
+    echo "Building OpenSSL version ${description} (commit ${gitref})..."
+    git clean -fdxq
+    git checkout -q .
+    git checkout -q $gitref
+    ./config shared > $versionsuffix.log 2>&1
+    make >> $versionsuffix.log 2>&1
+    cp libcrypto.so ../openssl-${versionsuffix}.so
+}
+
+
+if [ -d openssl ]; then
+    echo "openssl folder already exists, skip repository cloning."
+else
+    git clone https://github.com/openssl/openssl
+fi
+pushd openssl > /dev/null
+
+build_openssl_so "0_9_8h" "OpenSSL_0_9_8h" "0.9.8 (used in early Bitcoin Core clients < v0.12)"
 
 popd > /dev/null
