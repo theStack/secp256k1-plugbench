@@ -78,7 +78,7 @@ void perform_benchmark_libsecp(const char* so_file)
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
-    printf("Verifying %d ECDSA signatures using \"%s\" took %.2f ms\n", N_SIGNATURES, so_file, elapsed_ns/1000000);
+    printf("Using \"%s\": %.2f ms\n", so_file, elapsed_ns/1000000);
 
     dyn_secp256k1_context_destroy(ctx);
     dlclose(handle);
@@ -121,7 +121,7 @@ void perform_benchmark_openssl(const char* so_file)
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
-    printf("Verifying %d ECDSA signatures using \"%s\" took %.2f ms\n", N_SIGNATURES, so_file, elapsed_ns/1000000);
+    printf("Using \"%s\": %.2f ms\n", so_file, elapsed_ns/1000000);
 
     dlclose(handle);
 }
@@ -163,8 +163,13 @@ int main()
     }
     secp256k1_context_destroy(ctx);
 
+    printf("Benchmark scenario: verify %d ECDSA signatures (DER format) with compressed public keys\n\n", N_SIGNATURES);
+
+    printf("===== OpenSSL =====\n");
     perform_benchmark_openssl("./openssl-0_9_8h.so");
 
+    printf("\n");
+    printf("===== libsecp256k1 =====\n");
     perform_benchmark_libsecp("./libsecp256k1-core-v0_12_0.so");
     perform_benchmark_libsecp("./libsecp256k1-core-v0_14_0.so");
     perform_benchmark_libsecp("./libsecp256k1-core-v0_15_0.so");
