@@ -113,4 +113,6 @@ build_openssl_so "1_0_0"  "OpenSSL_1_0_0"  "1.0.0 (released in 2010)" 0
 build_openssl_so "1_1_1"  "OpenSSL_1_1_1"  "1.1.1 (released in 2018)" 1
 build_openssl_so "3_0_0"  "openssl-3.0.0"  "3.0.0 (released in 2021)" 1
 build_openssl_so "3_1_0"  "openssl-3.1.0"  "3.1.0 (released in 2023)" 1
+build_openssl_so "3_3_0"  "openssl-3.3.0"  "3.3.0 (released in 2024)" 1
+build_openssl_so "3_5_0"  "openssl-3.5.0"  "3.5.0 (released in 2025)" 1
 popd > /dev/null

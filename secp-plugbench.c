@@ -191,6 +191,8 @@ int main()
     perform_benchmark_openssl("./openssl-1_1_1.so",  "1.1.1");
     perform_benchmark_openssl("./openssl-3_0_0.so",  "3.0.0");
     perform_benchmark_openssl("./openssl-3_1_0.so",  "3.1.0");
+    perform_benchmark_openssl("./openssl-3_3_0.so",  "3.3.0");
+    perform_benchmark_openssl("./openssl-3_5_0.so",  "3.5.0");
 
     printf("\n");
     printf("===== libsecp256k1 =====\n");
