@@ -1,4 +1,5 @@
 /secp256k1
+/openssl
 *.a
 *.so
 secp-plugbench
