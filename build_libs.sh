@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 set -e
 
-rm -rf *.so *.a
-rm -rf secp256k1
-git clone https://github.com/bitcoin-core/secp256k1
+# TODO: put that in separate "rebuild" script or something similar
+#rm -rf *.so *.a
+#rm -rf secp256k1
+if [ -d secp256k1 ]; then
+    echo "secp256k1 folder already exists, skip repository cloning."
+else
+    git clone https://github.com/bitcoin-core/secp256k1
+fi
 pushd secp256k1 > /dev/null
 
 build_libsecp256k1_so() {
     local versionsuffix=$1
     local gitref=$2
     local description=$3
+    if [ -f ../libsecp256k1-${versionsuffix}.so ]; then
+        echo "libsecp256k1 version ${description} (libsecp256k1-${versionsuffix}.so) already exists, skip build."
+        return 0
+    fi
     echo "Building libsecp256k1 version ${description} (commit ${gitref})..."
     git clean -fdxq
     git checkout -q .
