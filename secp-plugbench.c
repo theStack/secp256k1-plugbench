@@ -78,7 +78,7 @@ void perform_benchmark_libsecp(const char* so_file, const char* version_desc)
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
-    printf("secp256k1 version %s: %.2f ms\n", version_desc, elapsed_ns/1000000);
+    printf("secp256k1 version %s: %.3f ms\n", version_desc, elapsed_ns/1000000);
 
     dyn_secp256k1_context_destroy(ctx);
     dlclose(handle);
@@ -138,7 +138,7 @@ void perform_benchmark_openssl(const char* so_file, const char* version_desc)
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
-    printf("OpenSSL version %s: %.2f ms\n", version_desc, elapsed_ns/1000000);
+    printf("OpenSSL version %s: %.3f ms\n", version_desc, elapsed_ns/1000000);
 
     dyn_EC_KEY_free(key);
     dyn_EC_GROUP_free(group);
