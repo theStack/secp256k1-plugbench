@@ -167,6 +167,7 @@ int main()
 
     printf("===== OpenSSL =====\n");
     perform_benchmark_openssl("./openssl-0_9_8h.so", "0.9.8h");
+    perform_benchmark_openssl("./openssl-1_0_0.so",  "1.0.0");
 
     printf("\n");
     printf("===== libsecp256k1 =====\n");

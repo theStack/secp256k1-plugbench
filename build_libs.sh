@@ -100,5 +100,6 @@ fi
 pushd openssl > /dev/null
 
 build_openssl_so "0_9_8h" "OpenSSL_0_9_8h" "0.9.8 (used in early Bitcoin Core clients < v0.12)"
+build_openssl_so "1_0_0"  "OpenSSL_1_0_0"  "1.0.0"
 
 popd > /dev/null
