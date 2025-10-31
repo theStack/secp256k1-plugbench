@@ -19,6 +19,7 @@ struct sig_verify_data {
 } sigs[N_SIGNATURES];
 
 unsigned long seed = 313372342;
+FILE *csv_file = NULL;
 
 void* load_symbol(void* handle, const char* symbol)
 {
@@ -79,6 +80,10 @@ void perform_benchmark_libsecp(const char* so_file, const char* version_desc)
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
     printf("secp256k1 version %s: %.3f ms\n", version_desc, elapsed_ns/1000000);
+    char plot_label[64] = {0};
+    size_t plot_label_len = strlen(so_file)-20-5; /* TODO: this is very ugly, fix it */
+    memcpy(plot_label, so_file+20, plot_label_len);
+    if (csv_file) fprintf(csv_file, "bc-%s,%.3f\n", plot_label, elapsed_ns/1000000);
 
     dyn_secp256k1_context_destroy(ctx);
     dlclose(handle);
@@ -139,14 +144,28 @@ void perform_benchmark_openssl(const char* so_file, const char* version_desc)
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
     printf("OpenSSL version %s: %.3f ms\n", version_desc, elapsed_ns/1000000);
+    char plot_label[64] = {0};
+    size_t plot_label_len = strlen(so_file)-10-3; /* TODO: this is very ugly, fix it */
+    memcpy(plot_label, so_file+10, plot_label_len);
+    if (csv_file) fprintf(csv_file, "os-%s,%.3f\n", plot_label, elapsed_ns/1000000);
 
     dyn_EC_KEY_free(key);
     dyn_EC_GROUP_free(group);
     dlclose(handle);
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    /* write benchmarks to a .csv file, if a parameter is provided */
+    if (argc == 2) {
+        csv_file = fopen(argv[1], "w");
+        if (!csv_file) {
+            fprintf(stderr, "Couldn't open file \"%s\" for writing.\n", argv[1]);
+            return EXIT_FAILURE;
+        }
+        fprintf(csv_file, "version,runtime\n");
+    }
+
     /* derive pseudo-random keys and messages from seed and create signatures */
     int i, ret;
 
@@ -212,5 +231,6 @@ int main()
     perform_benchmark_libsecp("./libsecp256k1-core-v29_0.so",   "used in Bitcoin Core v29.0");
     perform_benchmark_libsecp("./libsecp256k1-core-v30_0.so",   "used in Bitcoin Core v30.0");
 
+    if (csv_file) fclose(csv_file);
     return EXIT_SUCCESS;
 }
