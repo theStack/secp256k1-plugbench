@@ -10,7 +10,13 @@ def get_prefix(version):
 prefixes = df['version'].apply(get_prefix)
 palette = {'os': 'lightblue', 'bc': 'orange'}
 
-sns.barplot(x='version',y='runtime',data=df,palette='RdYlGn')
+norm = plt.Normalize(min(df['runtime']), max(df['runtime']))
+#cmap = plt.get_cmap('coolwarm')
+#cmap = plt.get_cmap('inferno')
+cmap = plt.get_cmap('RdYlGn_r')
+
+#sns.barplot(x='version',y='runtime',data=df,palette='RdYlGn')
+sns.barplot(x='version',y='runtime',data=df,palette=[cmap(norm(val)) for val in df['runtime']])
 plt.title("Benchmark: run-time of verifying 5000 ECDSA signatures per version (smaller is better)\n" +
           "os-... = OpenSSL, bc-... = libsecp256k1 used in specified Bitcoin Core version")
 plt.xlabel("version")
