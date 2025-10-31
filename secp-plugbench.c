@@ -10,6 +10,8 @@
 #include <openssl/obj_mac.h>
 
 #define N_SIGNATURES 5000
+/* parameter passed to clock_gettime(...) for elapsed time measurement */
+#define PLUGBENCH_CLOCK_ID CLOCK_PROCESS_CPUTIME_ID
 
 struct sig_verify_data {
     unsigned char sig_buf[128];
@@ -61,7 +63,7 @@ void perform_benchmark_libsecp(const char* so_file, const char* version_desc)
     ctx = dyn_secp256k1_context_create((1 << 0) | (1 << 8)); /* matches SECP256K1_CONTEXT_VERIFY */
     assert(ctx);
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    clock_gettime(PLUGBENCH_CLOCK_ID, &start);
 
     for (i = 0; i < N_SIGNATURES; i++) {
         secp256k1_pubkey pubkey;
@@ -77,7 +79,7 @@ void perform_benchmark_libsecp(const char* so_file, const char* version_desc)
         assert(ret);
     }
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    clock_gettime(PLUGBENCH_CLOCK_ID, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
     printf("secp256k1 version %s: %.3f ms\n", version_desc, elapsed_ns/1000000);
     char plot_label[64] = {0};
@@ -131,7 +133,7 @@ void perform_benchmark_openssl(const char* so_file, const char* version_desc)
     EC_KEY *key = dyn_EC_KEY_new();
     assert(key);
     dyn_EC_KEY_set_group(key, group);
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    clock_gettime(PLUGBENCH_CLOCK_ID, &start);
 
     for (i = 0; i < N_SIGNATURES; i++) {
         const unsigned char* pubkey_bytes_begin = &sigs[i].pubkey[0];
@@ -141,7 +143,7 @@ void perform_benchmark_openssl(const char* so_file, const char* version_desc)
         assert(ret == 1); /* 1 == good */
     }
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    clock_gettime(PLUGBENCH_CLOCK_ID, &end);
     elapsed_ns = (end.tv_sec - start.tv_sec)*1e9 + (end.tv_nsec - start.tv_nsec);
     printf("OpenSSL version %s: %.3f ms\n", version_desc, elapsed_ns/1000000);
     char plot_label[64] = {0};
