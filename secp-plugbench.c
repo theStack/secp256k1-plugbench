@@ -206,8 +206,11 @@ int main(int argc, char **argv)
     printf("Benchmark scenario: verify %d ECDSA signatures (DER format) with compressed public keys\n\n", N_SIGNATURES);
 
     printf("===== OpenSSL =====\n");
+    /* TODO: versions 0.9.8h and 1.0.0 crash on my arm64 machine, so skip them */
+#ifndef __aarch64__
     perform_benchmark_openssl("./openssl-0_9_8h.so", "0.9.8h");
     perform_benchmark_openssl("./openssl-1_0_0.so",  "1.0.0");
+#endif
     //perform_benchmark_openssl("./openssl-1_1_0.so",  "1.1.0");
     perform_benchmark_openssl("./openssl-1_1_1.so",  "1.1.1");
     perform_benchmark_openssl("./openssl-3_0_0.so",  "3.0.0");
