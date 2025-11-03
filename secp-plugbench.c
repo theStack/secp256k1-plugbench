@@ -33,7 +33,7 @@ void* load_symbol(void* handle, const char* symbol)
     return symbol_result;
 }
 
-void perform_benchmark_libsecp(const char* so_file, const char* version_desc)
+void perform_benchmark_libsecp(const char* so_file, const char* version_desc, const char* date_str)
 {
     void* handle;
     secp256k1_context* (*dyn_secp256k1_context_create)(unsigned int);
@@ -85,13 +85,13 @@ void perform_benchmark_libsecp(const char* so_file, const char* version_desc)
     char plot_label[64] = {0};
     size_t plot_label_len = strlen(so_file)-20-5; /* TODO: this is very ugly, fix it */
     memcpy(plot_label, so_file+20, plot_label_len);
-    if (csv_file) fprintf(csv_file, "bc-%s,%.3f\n", plot_label, elapsed_ns/1000000);
+    if (csv_file) fprintf(csv_file, "bc-%s,%s,%.3f\n", plot_label, date_str, elapsed_ns/1000000);
 
     dyn_secp256k1_context_destroy(ctx);
     dlclose(handle);
 }
 
-void perform_benchmark_openssl(const char* so_file, const char* version_desc)
+void perform_benchmark_openssl(const char* so_file, const char* version_desc, const char* date_str)
 {
     void* handle;
     EC_GROUP* (*dyn_EC_GROUP_new_by_curve_name)(int);
@@ -149,7 +149,7 @@ void perform_benchmark_openssl(const char* so_file, const char* version_desc)
     char plot_label[64] = {0};
     size_t plot_label_len = strlen(so_file)-10-3; /* TODO: this is very ugly, fix it */
     memcpy(plot_label, so_file+10, plot_label_len);
-    if (csv_file) fprintf(csv_file, "os-%s,%.3f\n", plot_label, elapsed_ns/1000000);
+    if (csv_file) fprintf(csv_file, "os-%s,%s,%.3f\n", plot_label, date_str, elapsed_ns/1000000);
 
     dyn_EC_KEY_free(key);
     dyn_EC_GROUP_free(group);
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
             fprintf(stderr, "Couldn't open file \"%s\" for writing.\n", argv[1]);
             return EXIT_FAILURE;
         }
-        fprintf(csv_file, "version,runtime\n");
+        fprintf(csv_file, "version,date,runtime\n");
     }
 
     /* derive pseudo-random keys and messages from seed and create signatures */
@@ -208,33 +208,33 @@ int main(int argc, char **argv)
     printf("===== OpenSSL =====\n");
     /* TODO: versions 0.9.8h and 1.0.0 crash on my arm64 machine, so skip them */
 #ifndef __aarch64__
-    perform_benchmark_openssl("./openssl-0_9_8h.so", "0.9.8h");
-    perform_benchmark_openssl("./openssl-1_0_0.so",  "1.0.0");
+    perform_benchmark_openssl("./openssl-0_9_8h.so", "0.9.8h", "2008-05-28");
+    perform_benchmark_openssl("./openssl-1_0_0.so",  "1.0.0", "2010-03-29");
 #endif
-    //perform_benchmark_openssl("./openssl-1_1_0.so",  "1.1.0");
-    perform_benchmark_openssl("./openssl-1_1_1.so",  "1.1.1");
-    perform_benchmark_openssl("./openssl-3_0_0.so",  "3.0.0");
-    perform_benchmark_openssl("./openssl-3_1_0.so",  "3.1.0");
-    perform_benchmark_openssl("./openssl-3_3_0.so",  "3.3.0");
-    perform_benchmark_openssl("./openssl-3_5_0.so",  "3.5.0");
+    //perform_benchmark_openssl("./openssl-1_1_0.so",  "1.1.0", "2016-08-25");
+    perform_benchmark_openssl("./openssl-1_1_1.so",  "1.1.1", "2018-09-11");
+    perform_benchmark_openssl("./openssl-3_0_0.so",  "3.0.0", "2021-09-07");
+    perform_benchmark_openssl("./openssl-3_1_0.so",  "3.1.0", "2023-03-14");
+    perform_benchmark_openssl("./openssl-3_3_0.so",  "3.3.0", "2024-04-09");
+    perform_benchmark_openssl("./openssl-3_5_0.so",  "3.5.0", "2025-04-08");
 
     printf("\n");
     printf("===== libsecp256k1 =====\n");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_12_0.so", "used in Bitcoin Core v0.12");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_14_0.so", "used in Bitcoin Core v0.14");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_15_0.so", "used in Bitcoin Core v0.15");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_16_0.so", "used in Bitcoin Core v0.16");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_19_0.so", "used in Bitcoin Core v0.19");
-    perform_benchmark_libsecp("./libsecp256k1-core-v0_20_0.so", "used in Bitcoin Core v0.20");
-    perform_benchmark_libsecp("./libsecp256k1-core-v22_0.so",   "used in Bitcoin Core v22.0");
-    perform_benchmark_libsecp("./libsecp256k1-core-v23_0.so",   "used in Bitcoin Core v23.0");
-    perform_benchmark_libsecp("./libsecp256k1-core-v24_0.so",   "used in Bitcoin Core v24.0");
-    perform_benchmark_libsecp("./libsecp256k1-core-v25_0.so",   "used in Bitcoin Core v25.0");
-    perform_benchmark_libsecp("./libsecp256k1-core-v26_0.so",   "used in Bitcoin Core v26.0");
-    perform_benchmark_libsecp("./libsecp256k1-core-v27_0.so",   "used in Bitcoin Core v27.0");
-    perform_benchmark_libsecp("./libsecp256k1-core-v28_0.so",   "used in Bitcoin Core v28.0");
-    perform_benchmark_libsecp("./libsecp256k1-core-v29_0.so",   "used in Bitcoin Core v29.0");
-    perform_benchmark_libsecp("./libsecp256k1-core-v30_0.so",   "used in Bitcoin Core v30.0");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_12_0.so", "used in Bitcoin Core v0.12", "2016-02-17");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_14_0.so", "used in Bitcoin Core v0.14", "2017-03-05");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_15_0.so", "used in Bitcoin Core v0.15", "2017-11-11");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_16_0.so", "used in Bitcoin Core v0.16", "2018-02-22");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_19_0.so", "used in Bitcoin Core v0.19", "2019-11-08");
+    perform_benchmark_libsecp("./libsecp256k1-core-v0_20_0.so", "used in Bitcoin Core v0.20", "2020-06-02");
+    perform_benchmark_libsecp("./libsecp256k1-core-v22_0.so",   "used in Bitcoin Core v22.0", "2021-09-08");
+    perform_benchmark_libsecp("./libsecp256k1-core-v23_0.so",   "used in Bitcoin Core v23.0", "2022-04-21");
+    perform_benchmark_libsecp("./libsecp256k1-core-v24_0.so",   "used in Bitcoin Core v24.0", "2022-11-17");
+    perform_benchmark_libsecp("./libsecp256k1-core-v25_0.so",   "used in Bitcoin Core v25.0", "2023-05-25");
+    perform_benchmark_libsecp("./libsecp256k1-core-v26_0.so",   "used in Bitcoin Core v26.0", "2023-12-04");
+    perform_benchmark_libsecp("./libsecp256k1-core-v27_0.so",   "used in Bitcoin Core v27.0", "2024-04-15");
+    perform_benchmark_libsecp("./libsecp256k1-core-v28_0.so",   "used in Bitcoin Core v28.0", "2024-10-01");
+    perform_benchmark_libsecp("./libsecp256k1-core-v29_0.so",   "used in Bitcoin Core v29.0", "2025-04-11");
+    perform_benchmark_libsecp("./libsecp256k1-core-v30_0.so",   "used in Bitcoin Core v30.0", "2025-10-09");
 
     if (csv_file) fclose(csv_file);
     return EXIT_SUCCESS;
