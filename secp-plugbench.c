@@ -178,12 +178,16 @@ int main(int argc, char **argv)
         size_t pubkey_len = sizeof(sigs[i].pubkey);
         secp256k1_ecdsa_signature sig;
         unsigned char msghash[32];
-        unsigned char seedbuf[4];
+        unsigned char seedbuf[8];
 
         seedbuf[0] = seed >> 24;
         seedbuf[1] = seed >> 16;
         seedbuf[2] = seed >> 8;
         seedbuf[3] = seed;
+        seedbuf[4] = i >> 24;
+        seedbuf[5] = i >> 16;
+        seedbuf[6] = i >> 8;
+        seedbuf[7] = i;
         ret = secp256k1_tagged_sha256(secp256k1_context_static, seckey, "seckey", 6, seedbuf, sizeof(seedbuf));
         assert(ret);
         ret = secp256k1_tagged_sha256(secp256k1_context_static, msghash, "msghash", 7, seedbuf, sizeof(seedbuf));
